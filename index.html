@@ -226,7 +226,7 @@ function authView(su) {
         if (!j.ok) return m(j.error || 'حصلت مشكلة، حاول تاني');
       }
       const {error} = await sb.auth.signInWithPassword({email: p + '@exam.local', password: w});
-      if (error) return m('الرقم أو كلمة السر غلط');
+      if (error) return m('الرقم أو كلمة السر غلط' + (error.message ? ' [' + error.message + ']' : ''));
       enter();
     } finally { if ($('#go')) $('#go').disabled = false }
   });
