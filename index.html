@@ -288,11 +288,12 @@ async function fetchByIds(ids) {
 }
 
 // 1) years
+const ONLY_YEAR = 2;
 async function homeView() {
   view = 'home'; curYear = 0; curBlock = null; curSub = null; curLec = null;
   const {data: s} = await sb.from('subjects').select('*').order('year').order('block').order('name');
   subs = s || [];
-  if (!me.is_admin) return blocksView(me.year);   // الطالب يشوف فرقته بس
+  return blocksView(ONLY_YEAR);   // الموقع ده للفرقة الثانية بس (غيّر ONLY_YEAR لو عاوز فرقة تانية)
   const cnt = y => subs.filter(x => x.year === y).length;
   app.innerHTML = topBar() + '<h2>اختار الفرقة</h2>' + [1, 2, 3].map(y =>
     '<button class="sub' + (y === me.year ? ' mine' : '') + '" data-y="' + y + '"><b>' + yName(y) + '</b>' + (y === me.year ? ' <small>(فرقتك)</small>' : '') +
@@ -333,7 +334,7 @@ function blocksView(y) {
     const o = BLOCK_ORDER[y] || [], ia = o.indexOf(a), ib = o.indexOf(b);
     return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib) || a.localeCompare(b);
   });
-  let html = topBar() + (me.is_admin ? BK('‹ الفرق') : '') + crumb() + '<h2>' + yName(y) + ' - اختار البلوك</h2>';
+  let html = topBar() + '' + crumb() + '<h2>' + yName(y) + ' - اختار البلوك</h2>';
   if (!blocks.length) html += '<p>لسه مفيش مواد</p>';
   blocks.forEach((b, n) => {
     const c = list.filter(x => x.block === b).length;
