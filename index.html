@@ -520,7 +520,8 @@ async function fetchByIds(ids) {
 }
 
 // 1) years
-const ONLY_YEAR = 2;
+const ONLY_YEAR = 2, ONLY_BLOCK = /^musculoskeletal$/i;   // الموقع ده للفرقة 2 وبلوك MUSCULOSKELETAL بس
+const onlyBlockName = y => { const x = subs.find(z => z.year === y && ONLY_BLOCK.test(String(z.block).trim())); return x ? x.block : null };
 async function homeView() {
   view = 'home'; curYear = 0; curBlock = null; curSub = null; curLec = null;
   const {data: s} = await sb.from('subjects').select('*').order('year').order('block').order('name');
@@ -566,6 +567,7 @@ function icon(name) {
 // 2) blocks of a year
 function blocksView(y) {
   pracMode = false; view = 'blocks'; curYear = y; curBlock = null; curSub = null; curLec = null;
+  { const ob = onlyBlockName(y); if (ob) return subjectsView(y, ob) }
   const list = subs.filter(x => x.year === y);
   const blocks = [...new Set(list.map(x => x.block))].sort((a, b) => {
     const o = BLOCK_ORDER[y] || [], ia = o.indexOf(a), ib = o.indexOf(b);
@@ -903,10 +905,10 @@ async function practicalView(key) {
   key = key || 'anat'; const cfg = PZ[key]; let pzMeta = pzMetaC[key];
   view = 'practical'; curYear = 1;
   app.innerHTML = topBar() + BK('‹ البلوكات') + '<h2>PRACTICAL - ' + cfg.name + '</h2><p>⏳ جاري التحميل...</p>';
-  bindTop(); on('#bk', () => blocksView(1));
+  bindTop(); on('#bk', () => blocksView(ONLY_YEAR));
   if (!pzMeta) {
     const r = await sb.from(cfg.tbl).select('ord,m').order('ord');
-    if (r.error || !r.data || !r.data.length) { alert(r.error ? accMsg(r.error) : 'لسه مفيش محتوى في العملي'); return blocksView(1) }
+    if (r.error || !r.data || !r.data.length) { alert(r.error ? accMsg(r.error) : 'لسه مفيش محتوى في العملي'); return blocksView(ONLY_YEAR) }
     pzMeta = pzMetaC[key] = r.data;
   }
   if (!pzSavC[key]) {
@@ -923,7 +925,7 @@ async function practicalView(key) {
     '<div id="pz-wrap"><img id="pz-im" alt=""></div>' +
     '<div id="pz-done" hidden style="text-align:center;margin:14px 0"></div>' +
     '<div id="pz-panel"><button id="pz-prev">→ السابق</button><button id="pz-sv">🔖 حفظ</button><button id="pz-btn">أظهر الإجابة</button></div><div style="height:90px"></div>';
-  bindTop(); on('#bk', () => blocksView(1));
+  bindTop(); on('#bk', () => blocksView(ONLY_YEAR));
   async function load(n) {
     if (pzImg[key + n]) return pzImg[key + n];
     const r = await sb.from(cfg.tbl).select('img').eq('ord', n);
@@ -987,14 +989,14 @@ async function practicalView(key) {
 function subjectsView(y, block) {
   view = 'subjects'; curYear = y; if (block !== undefined) curBlock = block; curSub = null; curLec = null;
   const list = subs.filter(x => x.year === y && x.block === curBlock);
-  let html = topBar() + BK('‹ البلوكات') + crumb() + '<h2>' + esc(curBlock) + '</h2>';
+  let html = topBar() + (onlyBlockName(y) ? '' : BK('‹ البلوكات')) + crumb() + '<h2>' + esc(curBlock) + '</h2>';
   if (!list.length) html += '<p>لسه مفيش مواد</p>';
   list.forEach(x => { html += '<button class="sub" data-id="' + x.id + '">' + icon(x.name) + '<b>' + esc(x.name) + '</b></button>' });
   app.innerHTML = html; bindTop(); on('#bk', () => blocksView(curYear));
   document.querySelectorAll('.sub').forEach(b => b.onclick = () => lecturesView(subs.find(x => x.id === +b.dataset.id)));
 }
 
-const backFromLec = () => subs.filter(x => x.year === curYear && x.block === curBlock).length === 1 ? blocksView(curYear) : subjectsView(curYear);
+const backFromLec = () => subs.filter(x => x.year === curYear && x.block === curBlock).length === 1 && !onlyBlockName(curYear) ? blocksView(curYear) : subjectsView(curYear);
 
 // 4) lectures of a subject (a lecture = the "chapter" column)
 let pracMode = false;
