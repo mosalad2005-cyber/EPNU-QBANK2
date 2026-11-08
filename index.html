@@ -428,14 +428,13 @@ function bindTop() {
 }
 
 function authView(su) {
-  view = 'auth'; setWM(true); let year = 0;
+  view = 'auth'; setWM(true); let year = ONLY_YEAR;
   app.innerHTML = `<div class="card"><h2>${su ? 'حساب جديد' : 'تسجيل الدخول'}</h2><div class="authnote">⚠️ <b>تنبيه:</b> لا نُحَلِّل استخدام الحساب إلا من قِبَل صاحبه، ولا نُحَلِّل سرقة المحتوى بأي طريقة.</div>` +
-    (su ? `<input id="n" placeholder="الاسم"><div class="row" id="yr">${[1,2,3].map(y => y === 2 ? `<button type="button" class="soon" disabled>فرقة 2<br><small>قريبًا</small></button>` : `<button data-v="${y}">فرقة ${y}${BATCH[y] ? ' (دفعة ' + BATCH[y] + ')' : ''}</button>`).join('')}</div>` : '') +
+    (su ? `<input id="n" placeholder="الاسم">` : '') +
     `<input id="p" inputmode="tel" placeholder="رقم التليفون"><input id="w" type="password" placeholder="كلمة السر">
     <button class="btn" id="go">${su ? 'تسجيل' : 'دخول'}</button><p class="msg" id="m"></p>
     <button class="link" id="sw">${su ? 'عندي حساب' : 'عمل حساب جديد'}</button>
     ${su ? '' : '<button class="link" id="fp" type="button">هل نسيت كلمة السر؟</button><p class="pay-info" id="fpm" style="display:none"></p>'}</div>`;
-  if (su) pick('#yr', v => year = +v);
   on('#sw', () => authView(!su));
   on('#fp', () => {
     const f = $('#fpm');
